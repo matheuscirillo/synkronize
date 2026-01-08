@@ -1,0 +1,106 @@
+// TASK
+{
+  "id": "",
+  "name": "",
+  "description": "",
+  "owner": "",
+  "tags": [""],
+  "source": {
+    "id": "",
+    "name": "",
+    "description": "",
+    "type": "aws_sqs",
+    "metadata": {
+      "createdAt": "",
+      "createdBy": "",
+      "updatedAt": "",
+      "updatedBy": ""
+    }
+  },
+  "sinks": [
+    {
+      "id": "",
+      "name": "",
+      "description": "",
+      "type": "kafka",
+      "interceptors": [
+        {
+          "type": "validator",
+          "validationType": "json_schema",
+          "schema": "<json schema>"
+        },
+        {
+          "type": "log",
+          "mustEncrypt": false
+        },
+        {
+          "type": "script",
+          "language": "js",
+          "source": "console.log('hello, world!')"
+        },
+        {
+          "type": "log",
+          "mustEncrypt": false
+        },
+        {
+          "type": "script",
+          "language": "jolt",
+          "source": "<jolt transform>"
+        },
+        {
+          "type": "log",
+          "mustEncrypt": false
+        },
+        {
+          "type": "script",
+          "language": "xslt",
+          "source": "<xslt transform>"
+        },
+        {
+          "type": "log",
+          "mustEncrypt": false
+        }
+      ],
+      "metadata": {
+        "createdAt": "",
+        "createdBy": "",
+        "updatedAt": "",
+        "updatedBy": ""
+      }
+    }
+  ],
+  "metadata": {
+    "createdAt": "",
+    "createdBy": "",
+    "updatedAt": "",
+    "updatedBy": ""
+  }
+}
+
+// SOURCE CONFIG
+{
+  "id": "",
+  "taskId": "",
+  "envId": "",
+  "sourceId": "",
+  "configMap": {
+    "queueName": "",
+    "accountId": "",
+    "accessKeyId": "",
+    "secretAccessKey": "",
+  }
+}
+
+// SINK CONFIG
+{
+  "id": "",
+  "taskId": "",
+  "envId": "",
+  "sinkId": "",
+  "configMap": {
+    "kafkaBootstrapServers": "",
+    "authType": "sasl_plain",
+    "username": "",
+    "password": "",
+  }
+}
