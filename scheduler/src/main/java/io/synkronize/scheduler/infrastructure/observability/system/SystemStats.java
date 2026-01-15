@@ -1,4 +1,4 @@
-package io.synkronize.scheduler.application.utils.system;
+package io.synkronize.scheduler.infrastructure.observability.system;
 
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import static io.synkronize.scheduler.application.utils.system.SystemStats.Measurement.*;
+import static io.synkronize.scheduler.infrastructure.observability.system.SystemStats.Measurement.*;
 
 public class SystemStats {
 

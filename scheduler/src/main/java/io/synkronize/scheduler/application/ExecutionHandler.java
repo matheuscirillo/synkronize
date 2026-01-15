@@ -3,8 +3,8 @@ package io.synkronize.scheduler.application;
 import io.synkronize.connector.source.spi.SourceConnector;
 import io.synkronize.connector.source.spi.SynkronizeConnector;
 import io.synkronize.scheduler.application.context.execution.ExecutionContextImpl;
-import io.synkronize.scheduler.application.metrics.TaskMetrics;
 import io.synkronize.scheduler.core.buffer.Buffer;
+import io.synkronize.scheduler.core.port.TaskMetricsPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,12 +24,12 @@ public class ExecutionHandler implements Runnable {
     private final Buffer buffer;
     private final String taskId;
     private final String envId;
-    private final TaskMetrics taskMetrics;
+    private final TaskMetricsPort taskMetrics;
 
     private final String connectorType;
     private final Duration defaultDelay;
 
-    public ExecutionHandler(SourceConnector connector, Buffer buffer, String taskId, String envId, TaskMetrics taskMetrics) {
+    public ExecutionHandler(SourceConnector connector, Buffer buffer, String taskId, String envId, TaskMetricsPort taskMetrics) {
         this.connector = connector;
         this.buffer = buffer;
         this.taskId = taskId;

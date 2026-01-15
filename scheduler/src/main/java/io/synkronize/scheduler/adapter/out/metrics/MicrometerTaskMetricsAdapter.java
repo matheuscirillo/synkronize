@@ -1,17 +1,19 @@
-package io.synkronize.scheduler.application.metrics;
+package io.synkronize.scheduler.adapter.out.metrics;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.synkronize.scheduler.core.port.TaskMetricsPort;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class TaskMetrics {
+public class MicrometerTaskMetricsAdapter implements TaskMetricsPort {
 
     private final MeterRegistry registry;
 
-    public TaskMetrics(MeterRegistry registry) {
+    public MicrometerTaskMetricsAdapter(MeterRegistry registry) {
         this.registry = registry;
     }
 
+    @Override
     public void incrementExecutions(String taskId, String connectorType) {
         registry.counter(
                 "synkronize_task_executions_total",
@@ -20,6 +22,7 @@ public class TaskMetrics {
         ).increment();
     }
 
+    @Override
     public void incrementMessages(String taskId, String connectorType, long count) {
         registry.counter(
                 "synkronize_task_messages_consumed_total",
@@ -28,6 +31,7 @@ public class TaskMetrics {
         ).increment(count);
     }
 
+    @Override
     public void incrementError(String taskId, String connectorType, Throwable e) {
         registry.counter(
                 "synkronize_task_errors_total",

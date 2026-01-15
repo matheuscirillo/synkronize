@@ -1,4 +1,4 @@
-package io.synkronize.scheduler.core.connector;
+package io.synkronize.scheduler.application.connector;
 
 import io.synkronize.connector.source.spi.SourceConnector;
 import io.synkronize.scheduler.application.ExecutionHandler;

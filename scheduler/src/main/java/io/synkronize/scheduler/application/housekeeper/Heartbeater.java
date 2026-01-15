@@ -1,8 +1,8 @@
 package io.synkronize.scheduler.application.housekeeper;
 
 import io.quarkus.runtime.Startup;
-import io.synkronize.scheduler.application.utils.net.AddressResolver;
-import io.synkronize.scheduler.application.utils.system.SystemStats;
+import io.synkronize.scheduler.infrastructure.observability.net.AddressResolver;
+import io.synkronize.scheduler.infrastructure.observability.system.SystemStats;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -3,17 +3,17 @@ package io.synkronize.scheduler.application;
 import io.synkronize.connector.source.spi.SourceConnector;
 import io.synkronize.connector.source.spi.context.task.Property;
 import io.synkronize.connector.source.spi.context.task.TaskContext;
+import io.synkronize.scheduler.application.connector.SourceConnectorMetadata;
+import io.synkronize.scheduler.application.connector.SourceConnectorMetadataHolder;
 import io.synkronize.scheduler.application.context.task.PropertiesImpl;
 import io.synkronize.scheduler.application.context.task.PropertyImpl;
 import io.synkronize.scheduler.application.context.task.TaskContextImpl;
-import io.synkronize.scheduler.application.metrics.TaskMetrics;
 import io.synkronize.scheduler.core.Scheduler;
-import io.synkronize.scheduler.core.SynkronizeTaskQueue;
 import io.synkronize.scheduler.core.buffer.Buffer;
-import io.synkronize.scheduler.core.connector.SourceConnectorMetadata;
-import io.synkronize.scheduler.core.connector.SourceConnectorMetadataHolder;
 import io.synkronize.scheduler.core.message.TaskMessage;
 import io.synkronize.scheduler.core.message.TaskMessageType;
+import io.synkronize.scheduler.core.port.SynkronizeTaskQueuePort;
+import io.synkronize.scheduler.core.port.TaskMetricsPort;
 import io.synkronize.scheduler.core.resolver.SourceConnectorResolver;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.slf4j.Logger;
@@ -34,16 +34,16 @@ public class DefaultScheduler implements Scheduler, Closeable {
     private boolean isRunning;
     private boolean closeCalled;
 
-    private final SynkronizeTaskQueue taskQueue;
+    private final SynkronizeTaskQueuePort taskQueue;
     private final SourceConnectorResolver sourceConnectorResolver;
     private final SynkronizeTaskExecutor synkronizeTaskExecutor;
     private final Buffer buffer;
-    private final TaskMetrics taskMetrics;
+    private final TaskMetricsPort taskMetrics;
 
-    public DefaultScheduler(SynkronizeTaskQueue taskQueue,
+    public DefaultScheduler(SynkronizeTaskQueuePort taskQueue,
                             SourceConnectorResolver sourceConnectorResolver,
                             SynkronizeTaskExecutor synkronizeTaskExecutor,
-                            Buffer buffer, TaskMetrics taskMetrics) {
+                            Buffer buffer, TaskMetricsPort taskMetrics) {
         this.taskQueue = taskQueue;
         this.sourceConnectorResolver = sourceConnectorResolver;
         this.synkronizeTaskExecutor = synkronizeTaskExecutor;

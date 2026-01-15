@@ -1,4 +1,4 @@
-package io.synkronize.scheduler.application.utils.net;
+package io.synkronize.scheduler.infrastructure.observability.net;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.ConfigProvider;

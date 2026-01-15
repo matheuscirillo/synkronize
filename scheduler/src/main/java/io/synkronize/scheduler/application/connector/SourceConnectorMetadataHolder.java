@@ -1,4 +1,4 @@
-package io.synkronize.scheduler.core.connector;
+package io.synkronize.scheduler.application.connector;
 
 import java.util.Collection;
 import java.util.Map;
