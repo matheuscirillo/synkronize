@@ -11,7 +11,6 @@
         <module>scheduler</module>
         <module>source-connector-spi</module>
         <module>source-connectors-bundle</module>
-        <module>executor</module>
     </modules>
 
     <name>Synkronize</name>
