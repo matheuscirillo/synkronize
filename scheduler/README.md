@@ -50,7 +50,7 @@ public class SqsExampleConnector implements SourceConnector {
 }
 ```
 
-The `ExecutionContext` is created and injected by the `ExecutionHandler`. The `ExecutionContext` implementation can be found under the package `io.synkronize.scheduler.application.context` and this package effectively implements the interfaces defined in `io.synkronize.connector.source.spi.context`.
+The `ExecutionContext` is created and injected by the `ExecutionHandler`. The `ExecutionContext` implementation can be found under the package `io.synkronize.scheduler.connector.context` and this package effectively implements the interfaces defined in `io.synkronize.connector.source.spi.context`.
 
 #### What is the purpose of the `ExecutionContext`?
 It is a class that provides some essential features: 
@@ -64,7 +64,7 @@ It is the class that wraps the data that will be passed to the buffer to be writ
 #### What is the purpose of the `ExecutionHandler`?
 It is a class that wraps the actual executions of it's underlying `SourceConnector`. It provides simple functionalities on incrementing counters within the `TaskMetrics`, delay executions of "empty receives" and errors.
 
-#### What is the purpose of the `SynkronizeTaskExecutor`?
+#### What is the purpose of the `TaskExecutor`?
 It is a class that wraps an `ScheduledExecutorService` and implements a `Runnable` around the already runnable `ExecutionHandler`. It is done to provide a way for "auto-rescheduling" of tasks.
 
 The following snippet is the one that does the "auto-rescheduling thing":
@@ -89,9 +89,9 @@ public void schedule(ExecutionHandler executionHandler, Runnable onInterrupt) {
 After a task is executed, it is rescheduled to run, and this code does just that.
 
 ### System statistics
-There is a class `SystemStats` (`io.synkronize.scheduler.application.utils.system`) that provides system statistics such as CPU usage and available memory. It uses the `oshi-core` library to gather this information. Ideally, this information would be sent to the Manager to be used during the task allocation process to define what is would be the best node to place the task on. As of now, statistics are just logged to the console.
+There is a class `SystemStats` (`io.synkronize.scheduler.utils.system`) that provides system statistics such as CPU usage and available memory. It uses the `oshi-core` library to gather this information. Ideally, this information would be sent to the Manager to be used during the task allocation process to define what is would be the best node to place the task on. As of now, statistics are just logged to the console.
 
-There is also a class called `AddressResolver` (`io.synkronize.scheduler.application.utils.net`) that resolves the hostname of the current node. It would also be send while registering the node within the Manager, but it is currently unused.
+There is also a class called `AddressResolver` (`io.synkronize.scheduler.utils.net`) that resolves the hostname of the current node. It would also be send while registering the node within the Manager, but it is currently unused.
 
 ### Metrics
 Metrics are exposed through the `/metrics` endpoint by using Micrometer and Prometheus Exporter. The class `TaskMetrics` is a wrapper around Micrometer's `MeterRegistry` and provides a way to increment execution count, messages written to the buffer and errors.
@@ -103,12 +103,6 @@ This file is used during compilation to generate the Java classes for the gRPC s
 
 To generate the Java classes for the gRPC service, you need to run the following command from the root of the project:
 ```
-mvn clean compile
+mvn quarkus:generate-code -pl scheduler
 ```
 This will generate the Java classes for the gRPC service in the `target/generated-sources/gprc` directory.
-
-The following goals should be uncommented in the root `pom.xml` for the Quarkus Maven plugin to generate the classes.
-```
-<goal>generate-code</goal>
-<goal>generate-code-tests</goal>
-```

@@ -3,7 +3,7 @@ syntax = "proto3";
 import "google/protobuf/empty.proto";
 
 option java_multiple_files = true;
-option java_package = "io.synkronize.scheduler.adapter.in.grpc.task.generated";
+option java_package = "io.synkronize.scheduler.api.grpc.contract";
 option java_outer_classname = "TaskCreation";
 
 package io.synkronize;
