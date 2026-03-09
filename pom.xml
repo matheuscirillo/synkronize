@@ -9,8 +9,11 @@
     <modules>
         <module>extensions</module>
         <module>scheduler</module>
+        <module>executor</module>
         <module>source-connector-spi</module>
         <module>source-connectors-bundle</module>
+        <module>sink-connector-spi</module>
+        <module>sink-connectors-bundle</module>
     </modules>
 
     <name>Synkronize</name>
