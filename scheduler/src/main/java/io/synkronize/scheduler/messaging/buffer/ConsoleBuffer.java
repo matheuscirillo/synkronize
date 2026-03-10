@@ -1,7 +1,7 @@
 package io.synkronize.scheduler.messaging.buffer;
 
-import io.synkronize.scheduler.model.SynkronizeMessage;
 import io.synkronize.scheduler.messaging.serializer.JsonSerializer;
+import io.synkronize.scheduler.model.SynkronizeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -14,6 +14,7 @@
         <module>source-connectors-bundle</module>
         <module>sink-connector-spi</module>
         <module>sink-connectors-bundle</module>
+        <module>task-model</module>
     </modules>
 
     <name>Synkronize</name>

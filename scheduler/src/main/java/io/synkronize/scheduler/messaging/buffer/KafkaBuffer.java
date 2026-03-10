@@ -1,7 +1,7 @@
 package io.synkronize.scheduler.messaging.buffer;
 
-import io.synkronize.scheduler.model.SynkronizeMessage;
 import io.synkronize.scheduler.messaging.serializer.JsonSerializer;
+import io.synkronize.scheduler.model.SynkronizeMessage;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 

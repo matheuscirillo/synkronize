@@ -5,7 +5,10 @@ The Scheduler is responsible for scheduling task executions on a thread and mana
 As already said, this is nowhere near production-ready.
 
 ### How is the execution done?
-Once a request to start a new task is received, the `DefaultScheduler` (the default implementation of the `Scheduler` interface) orchestrate it's initilization by calling underlying classes that effectively instantiate the corresponding connector, creates an `ExecutionHandler` for that task, saves it's metadata within the `SourceConnectorMetadataHolder`, and then schedules it execution by using the `SynkronizeTaskExecutor` class.
+Once a request to start a new task is received, the `DefaultScheduler` (the default implementation of the 
+`Scheduler` interface) orchestrate it's initilization by calling underlying classes that effectively 
+instantiate the corresponding connector, creates an `ExecutionHandler` for that task, saves it's metadata 
+within the `ConnectorRegistry`, and then schedules it execution by using the `TaskExecutor` class.
 
 The `SourceConnector` is an interface defined in the Source Connectors SPI module (`io.synkronize.connector.source.spi.SourceConnector`). The **Scheduler** is able to instantiate and run classes that implement this interface.
 

@@ -1,10 +1,10 @@
 package io.synkronize.scheduler.config;
 
 import io.quarkus.arc.properties.IfBuildProperty;
+import io.synkronize.scheduler.messaging.buffer.Buffer;
 import io.synkronize.scheduler.messaging.buffer.ConsoleBuffer;
 import io.synkronize.scheduler.messaging.buffer.KafkaBuffer;
 import io.synkronize.scheduler.messaging.serializer.JsonSerializer;
-import io.synkronize.scheduler.messaging.buffer.Buffer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;

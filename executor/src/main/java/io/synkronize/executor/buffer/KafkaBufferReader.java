@@ -12,11 +12,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class KafkaBufferReader implements BufferReader {
 
@@ -28,7 +27,7 @@ public class KafkaBufferReader implements BufferReader {
     public KafkaBufferReader(KafkaConsumer<byte[], byte[]> kafkaConsumer, ObjectMapper objectMapper, String topic) {
         this.kafkaConsumer = kafkaConsumer;
         this.objectMapper = objectMapper;
-        this.kafkaConsumer.subscribe(java.util.Collections.singletonList(topic));
+        this.kafkaConsumer.subscribe(Collections.singletonList(topic));
     }
 
     @Override
