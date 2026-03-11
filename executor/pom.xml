@@ -38,6 +38,7 @@
         <dependency>
             <groupId>io.synkronize</groupId>
             <artifactId>task-model</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
         <!-- QUARKUS -->
