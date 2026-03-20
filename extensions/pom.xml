@@ -15,6 +15,7 @@
     <modules>
         <module>source-connectors-extension</module>
         <module>sink-connectors-extension</module>
+        <module>task-model-stage-extension</module>
     </modules>
 
     <properties>

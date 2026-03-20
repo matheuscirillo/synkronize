@@ -17,4 +17,11 @@ public class SinkPipeline {
     public void setStages(List<SinkPipelineStage> stages) {
         this.stages = stages == null ? new ArrayList<>() : new ArrayList<>(stages);
     }
+
+    @Override
+    public String toString() {
+        return "SinkPipeline{" +
+                "stages=" + stages +
+                '}';
+    }
 }

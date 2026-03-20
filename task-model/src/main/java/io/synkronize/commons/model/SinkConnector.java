@@ -80,4 +80,18 @@ public class SinkConnector {
     public void setPipeline(SinkPipeline pipeline) {
         this.pipeline = pipeline;
     }
+
+    @Override
+    public String toString() {
+        return "SinkConnector{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                ", description='" + description + '\'' +
+                ", enabled=" + enabled +
+                ", properties=" + properties +
+                ", deliveryPolicy=" + deliveryPolicy +
+                ", pipeline=" + pipeline +
+                '}';
+    }
 }

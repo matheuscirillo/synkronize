@@ -32,4 +32,13 @@ public class SinkDeliveryPolicy {
     public void setTimeoutMs(long timeoutMs) {
         this.timeoutMs = timeoutMs;
     }
+
+    @Override
+    public String toString() {
+        return "SinkDeliveryPolicy{" +
+                "maxAttempts=" + maxAttempts +
+                ", backoffMs=" + backoffMs +
+                ", timeoutMs=" + timeoutMs +
+                '}';
+    }
 }

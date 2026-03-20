@@ -1,0 +1,4 @@
+artifact: ${project.groupId}:${project.artifactId}:${project.version}
+name: "Task Model Stage Extension"
+metadata:
+  status: "stable"

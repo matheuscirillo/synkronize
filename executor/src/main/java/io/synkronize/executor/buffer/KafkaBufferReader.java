@@ -11,11 +11,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayDeque;
 import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+import java.util.stream.StreamSupport;
 
 public class KafkaBufferReader implements BufferReader {
 
@@ -31,15 +29,12 @@ public class KafkaBufferReader implements BufferReader {
     }
 
     @Override
-    public Map<String, Deque<SynkronizeMessage>> read(Duration duration) {
+    public List<SynkronizeMessage> read(Duration duration) {
         ConsumerRecords<byte[], byte[]> records = kafkaConsumer.poll(duration);
-        Map<String, Deque<SynkronizeMessage>> messageQueue = new HashMap<>(records.count());
-        for (ConsumerRecord<byte[], byte[]> record : records) {
-            SynkronizeMessage message = deserialize(record.value());
-            messageQueue.computeIfAbsent(message.taskId(), _ -> new ArrayDeque<>()).offer(message);
-        }
-
-        return messageQueue;
+        return StreamSupport.stream(records.spliterator(), false)
+                .map(ConsumerRecord::value)
+                .map(this::deserialize)
+                .toList();
     }
 
     @Override

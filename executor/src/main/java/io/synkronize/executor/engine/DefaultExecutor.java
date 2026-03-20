@@ -1,9 +1,10 @@
 package io.synkronize.executor.engine;
 
 import io.synkronize.executor.buffer.BufferReader;
+import io.synkronize.executor.engine.pipeline.PipelineCompiler;
 import io.synkronize.executor.model.SynkronizeMessage;
-import io.synkronize.executor.observability.TaskMetrics;
 import io.synkronize.executor.sink.InMemorySinkCache;
+import io.synkronize.executor.sink.provider.SinkProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,9 +12,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,8 +28,9 @@ public class DefaultExecutor implements Executor {
     private final Logger logger = LoggerFactory.getLogger(DefaultExecutor.class);
 
     private final BufferReader bufferReader;
-    private final TaskMetrics taskMetrics;
     private final InMemorySinkCache inMemorySinkCache;
+    private final SinkProvider sinkProvider;
+    private final PipelineCompiler pipelineCompiler;
 
     private final ExecutorService concurrentUnderlyingExecutor = Executors.newVirtualThreadPerTaskExecutor();
     private final Semaphore semaphore = new Semaphore(50);
@@ -35,10 +39,13 @@ public class DefaultExecutor implements Executor {
     private volatile boolean closeCalled;
 
     public DefaultExecutor(BufferReader bufferReader,
-                           TaskMetrics taskMetrics, InMemorySinkCache inMemorySinkCache) {
+                           InMemorySinkCache inMemorySinkCache,
+                           SinkProvider sinkProvider,
+                           PipelineCompiler pipelineCompiler) {
         this.bufferReader = bufferReader;
-        this.taskMetrics = taskMetrics;
         this.inMemorySinkCache = inMemorySinkCache;
+        this.sinkProvider = sinkProvider;
+        this.pipelineCompiler = pipelineCompiler;
     }
 
     @Override
@@ -48,12 +55,14 @@ public class DefaultExecutor implements Executor {
         Throwable err = null;
         while (!closeCalled) {
             try {
-                Map<String, Deque<SynkronizeMessage>> messages = bufferReader.read(Duration.ofSeconds(5));
+                Thread.sleep(2000);
+                List<SynkronizeMessage> messages = bufferReader.read(Duration.ofSeconds(5));
                 if (messages.isEmpty()) {
                     continue;
                 }
 
-                List<Callable<Integer>> callables = getCallables(messages);
+                Map<TaskEnvKey, Deque<SynkronizeMessage>> groupedMessages = groupMessages(messages);
+                List<Callable<Integer>> callables = getCallables(groupedMessages);
                 concurrentUnderlyingExecutor.invokeAll(callables);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -92,17 +101,36 @@ public class DefaultExecutor implements Executor {
         }
     }
 
-    private List<Callable<Integer>> getCallables(Map<String, Deque<SynkronizeMessage>> messages) {
+    private Map<TaskEnvKey, Deque<SynkronizeMessage>> groupMessages(List<SynkronizeMessage> messages) {
+        Map<TaskEnvKey, Deque<SynkronizeMessage>> groupedMessages = new HashMap<>();
+        for (SynkronizeMessage message : messages) {
+            TaskEnvKey key = new TaskEnvKey(message.taskId(), message.envId());
+            groupedMessages.computeIfAbsent(key, _ -> new ArrayDeque<>()).offer(message);
+        }
+        return groupedMessages;
+    }
+
+    private List<Callable<Integer>> getCallables(Map<TaskEnvKey, Deque<SynkronizeMessage>> messages) {
         List<Callable<Integer>> callables = new ArrayList<>();
-        for (Map.Entry<String, Deque<SynkronizeMessage>> taskMessages : messages.entrySet()) {
-            logger.info("Task {} quantity of messages: {}", taskMessages.getKey(), taskMessages.getValue().size());
+        for (Map.Entry<TaskEnvKey, Deque<SynkronizeMessage>> taskMessages : messages.entrySet()) {
             callables.add(() -> {
-                semaphore.acquire();
-                return new ExecutionHandler(taskMessages.getKey(), "prod",
-                        taskMessages.getValue(), inMemorySinkCache)
-                        .call();
+                try {
+                    semaphore.acquire();
+                    return new ExecutionHandler(taskMessages.getKey().taskId(),
+                            taskMessages.getKey().envId(),
+                            taskMessages.getValue(),
+                            inMemorySinkCache,
+                            sinkProvider,
+                            pipelineCompiler)
+                            .call();
+                } finally {
+                    semaphore.release();
+                }
             });
         }
         return callables;
+    }
+
+    private record TaskEnvKey(String taskId, String envId) {
     }
 }

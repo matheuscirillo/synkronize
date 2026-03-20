@@ -1,6 +1,7 @@
 package io.synkronize.executor.engine;
 
 import io.quarkus.runtime.Startup;
+import io.synkronize.executor.sink.provider.SinkProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
