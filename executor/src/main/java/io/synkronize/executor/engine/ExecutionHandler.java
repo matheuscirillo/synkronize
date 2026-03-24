@@ -49,14 +49,13 @@ public class ExecutionHandler implements Callable<Integer> {
             sinks = sinksFromActiveVersion.stream()
                     .map(sc -> new Sink(taskId,
                             sc.getId(),
-                            envId, new StdoutSinkConnector(),
+                            envId,
+                            new StdoutSinkConnector(),
                             pipelineCompiler.compile(sc.getPipeline())))
                     .toList();
 
             sinkCache.put(taskId, envId, sinks);
         }
-
-        logger.info("Sinks are: {}", sinks);
 
         while ((message = messageQueue.poll()) != null) {
             for (Sink sink : sinks) {

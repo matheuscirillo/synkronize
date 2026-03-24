@@ -15,18 +15,18 @@ import java.io.StringWriter;
 
 public class XSLTStage extends Stage<XSLTPipelineStage> {
 
-    private final Source xsltSource;
+    private final String transformation;
 
     public XSLTStage(XSLTPipelineStage sinkPipelineStage) {
         super(sinkPipelineStage);
-        this.xsltSource = new StreamSource(new StringReader(sinkPipelineStage.getTransformation()));
+        this.transformation = sinkPipelineStage.getTransformation();
     }
 
     @Override
     public SynkronizeMessage process(SynkronizeMessage input) {
         try {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer(xsltSource);
+            Transformer transformer = transformerFactory.newTransformer(new StreamSource(new StringReader(transformation)));
             transformer.setOutputProperty(OutputKeys.INDENT, "no");
 
             StringWriter writer = new StringWriter();

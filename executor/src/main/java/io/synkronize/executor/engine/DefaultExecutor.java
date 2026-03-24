@@ -55,9 +55,9 @@ public class DefaultExecutor implements Executor {
         Throwable err = null;
         while (!closeCalled) {
             try {
-                Thread.sleep(2000);
                 List<SynkronizeMessage> messages = bufferReader.read(Duration.ofSeconds(5));
                 if (messages.isEmpty()) {
+                    logger.info("No messages to process");
                     continue;
                 }
 
@@ -123,6 +123,10 @@ public class DefaultExecutor implements Executor {
                             sinkProvider,
                             pipelineCompiler)
                             .call();
+                } catch (Exception e) {
+                    // TODO ?
+                    e.printStackTrace();
+                    return -1;
                 } finally {
                     semaphore.release();
                 }
