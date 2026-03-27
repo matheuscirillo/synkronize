@@ -5,27 +5,18 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.synkronize</groupId>
-        <artifactId>aws-source-connectors</artifactId>
+        <artifactId>source-connectors</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>aws-source-connectors-sqs</artifactId>
-    <name>Synkronize - SQS Source Connector</name>
-
-    <properties>
-    </properties>
+    <artifactId>connector-test-support</artifactId>
+    <name>Synkronize - Source connector test support</name>
 
     <dependencies>
         <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>sqs</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.synkronize</groupId>
-            <artifactId>connector-test-support</artifactId>
+            <artifactId>source-connector-spi</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>

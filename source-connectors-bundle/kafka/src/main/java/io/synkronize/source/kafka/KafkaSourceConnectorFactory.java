@@ -12,15 +12,25 @@ public class KafkaSourceConnectorFactory implements SourceConnectorFactory<Kafka
     @Override
     public KafkaSourceConnector create(TaskContext context) {
         Properties properties = context.getProperties();
-        String bootstrapServers = properties.get("bootstrapServers").getValue();
+
+        var bootstrapProperty = properties.get("bootstrapServers");
+        if (bootstrapProperty == null)
+            throw new IllegalArgumentException("Property 'bootstrapServers' is required");
+        String bootstrapServers = bootstrapProperty.getValue();
         if (bootstrapServers == null)
             throw new IllegalArgumentException("Property 'bootstrapServers' is required");
 
-        String groupId = properties.get("groupId").getValue();
+        var groupProperty = properties.get("groupId");
+        if (groupProperty == null)
+            throw new IllegalArgumentException("Property 'groupId' is required");
+        String groupId = groupProperty.getValue();
         if (groupId == null)
             throw new IllegalArgumentException("Property 'groupId' is required");
 
-        String topic = properties.get("topic").getValue();
+        var topicProperty = properties.get("topic");
+        if (topicProperty == null)
+            throw new IllegalArgumentException("Property 'topic' is required");
+        String topic = topicProperty.getValue();
         if (topic == null)
             throw new IllegalArgumentException("Property 'topic' is required");
 

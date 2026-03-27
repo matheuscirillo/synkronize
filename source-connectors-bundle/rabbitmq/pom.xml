@@ -21,5 +21,11 @@
             <artifactId>amqp-client</artifactId>
             <version>5.25.0</version>
         </dependency>
+        <dependency>
+            <groupId>io.synkronize</groupId>
+            <artifactId>connector-test-support</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

@@ -10,6 +10,7 @@
     </parent>
     <packaging>pom</packaging>
     <modules>
+        <module>connector-test-support</module>
         <module>aws</module>
         <module>rabbitmq</module>
         <module>kafka</module>
