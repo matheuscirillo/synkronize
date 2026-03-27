@@ -4,8 +4,6 @@ import io.synkronize.connector.source.spi.SourceConnector;
 import io.synkronize.connector.source.spi.SynkronizeConnector;
 import io.synkronize.connector.source.spi.context.execution.ExecutionContext;
 import io.synkronize.connector.source.spi.context.execution.ExecutionFile;
-import io.synkronize.connector.source.spi.context.task.Properties;
-import io.synkronize.connector.source.spi.context.task.TaskContext;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -14,40 +12,18 @@ import org.apache.kafka.common.TopicPartition;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-@SynkronizeConnector("apache/kafka")
+@SynkronizeConnector(type = "apache/kafka", factoryClass = KafkaSourceConnectorFactory.class)
 public class KafkaSourceConnector implements SourceConnector {
 
-    private KafkaConsumer<byte[], byte[]> kafkaConsumer;
+    private final KafkaConsumer<byte[], byte[]> kafkaConsumer;
 
     private boolean isClosed = false;
 
-    @Override
-    public void onSchedule(TaskContext context) {
-        Properties properties = context.getProperties();
-        String bootstrapServers = properties.get("bootstrapServers").getValue();
-        if (bootstrapServers == null)
-            throw new IllegalArgumentException("Property 'bootstrapServers' is required");
-
-        String groupId = properties.get("groupId").getValue();
-        if (groupId == null)
-            throw new IllegalArgumentException("Property 'groupId' is required");
-
-        String topic = properties.get("topic").getValue();
-        if (topic == null)
-            throw new IllegalArgumentException("Property 'topic' is required");
-
-        java.util.Properties consumerProps = new java.util.Properties();
-        consumerProps.setProperty("bootstrap.servers", bootstrapServers);
-        consumerProps.setProperty("group.id", groupId);
-        consumerProps.setProperty("enable.auto.commit", "false");
-        consumerProps.setProperty("key.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-        consumerProps.setProperty("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-        this.kafkaConsumer = new KafkaConsumer<>(consumerProps);
-        this.kafkaConsumer.subscribe(Collections.singletonList(topic));
+    public KafkaSourceConnector(KafkaConsumer<byte[], byte[]> kafkaConsumer) {
+        this.kafkaConsumer = kafkaConsumer;
     }
 
     @Override

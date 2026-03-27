@@ -74,10 +74,10 @@ public class DefaultScheduler implements Scheduler, Closeable {
     }
 
     private void handleStartTask(TaskMessage taskMessage) throws IOException, TimeoutException {
-        SourceConnector sourceConnector = connectorResolver.resolve(taskMessage.sourceType());
+        TaskContext taskContext = createTaskContext(taskMessage);
+        SourceConnector sourceConnector = connectorResolver.resolve(taskMessage.sourceType(), taskContext);
         try {
-            logger.info("Calling onSchedule() for source connector {}", sourceConnector.getClass().getCanonicalName());
-            sourceConnector.onSchedule(createTaskContext(taskMessage));
+            logger.info("Source connector {} ready for task {}", sourceConnector.getClass().getCanonicalName(), taskMessage.taskId());
             ExecutionHandler executionHandler = new ExecutionHandler(sourceConnector,
                     buffer,
                     taskMessage.taskId(),

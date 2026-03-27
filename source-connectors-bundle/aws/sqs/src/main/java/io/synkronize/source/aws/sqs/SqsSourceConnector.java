@@ -4,11 +4,6 @@ import io.synkronize.connector.source.spi.SourceConnector;
 import io.synkronize.connector.source.spi.SynkronizeConnector;
 import io.synkronize.connector.source.spi.context.execution.ExecutionContext;
 import io.synkronize.connector.source.spi.context.execution.ExecutionFile;
-import io.synkronize.connector.source.spi.context.task.Property;
-import io.synkronize.connector.source.spi.context.task.TaskContext;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
@@ -26,47 +21,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@SynkronizeConnector("aws/sqs")
+@SynkronizeConnector(type = "aws/sqs", factoryClass = SqsSourceConnectorFactory.class)
 public class SqsSourceConnector implements SourceConnector {
 
-    private final String QUEUE_NAME_PROPERTY = "queueName";
-    private final String ACCESS_KEY_ID_PROPERTY = "accessKeyId";
-    private final String SECRET_ACCESS_KEY_PROPERTY = "secretAccessKey";
-    private final String REGION_PROPERTY = "region";
-    private final String QUEUE_OWNER_ID_PROPERTY = "queueOwnerId";
-
     private SqsQueueUrl queueUrl;
-    private String queueName;
-    private String queueOwnerId;
+
+    private final String queueName;
+    private final String queueOwnerId;
     private boolean isClosed = false;
 
-    private SqsClient sqsClient;
+    private final SqsClient sqsClient;
 
-    @Override
-    public void onSchedule(TaskContext context) {
-        Property accessKeyProperty = context.getProperties().get(ACCESS_KEY_ID_PROPERTY);
-        if (accessKeyProperty == null)
-            throw new IllegalArgumentException("Property 'accessKeyId' is required");
-
-        Property secretKeyProperty = context.getProperties().get(SECRET_ACCESS_KEY_PROPERTY);
-        if (secretKeyProperty == null)
-            throw new IllegalArgumentException("Property 'secretAccessKey' is required");
-
-        Property regionProperty = context.getProperties().get(REGION_PROPERTY);
-        if (regionProperty == null)
-            throw new IllegalArgumentException("Property 'region' is required");
-
-        Property queueNameProperty = context.getProperties().get(QUEUE_NAME_PROPERTY);
-        if (queueNameProperty == null)
-            throw new IllegalArgumentException("Property 'queueName' is required");
-
-        this.queueName = queueNameProperty.getValue();
-        this.queueOwnerId = context.getProperties().get(QUEUE_OWNER_ID_PROPERTY) != null ? context.getProperties().get(QUEUE_OWNER_ID_PROPERTY).getValue() : null;
-
-        this.sqsClient = SqsClient.builder()
-                .credentialsProvider(credentialsProvider(accessKeyProperty.getValue(), secretKeyProperty.getValue()))
-                .region(Region.of(regionProperty.getValue()))
-                .build();
+    public SqsSourceConnector(String queueName, String queueOwnerId, SqsClient sqsClient) {
+        this.queueName = queueName;
+        this.queueOwnerId = queueOwnerId;
+        this.sqsClient = sqsClient;
     }
 
     @Override
@@ -128,10 +97,6 @@ public class SqsSourceConnector implements SourceConnector {
                             .id(String.valueOf(counter.incrementAndGet()))
                             .build()).toList())
                     .build());
-    }
-
-    private static StaticCredentialsProvider credentialsProvider(String accessKeyId, String secretAccessKey) {
-        return StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKeyId, secretAccessKey));
     }
 
     private ReceiveMessageRequest receiveMessageRequest(String queueUrl) {

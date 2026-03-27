@@ -1,22 +1,22 @@
 package io.synkronize.extension.connector.runtime;
 
-import io.synkronize.connector.source.spi.SourceConnector;
+import io.synkronize.connector.source.spi.SourceConnectorFactory;
 
 import java.util.Map;
 
 public class SourceConnectorRegistry {
 
-    private static Map<String, Class<? extends SourceConnector>> sourceConnectorClasses;
+    private static Map<String, Class<? extends SourceConnectorFactory>> sourceConnectorFactories;
 
-    public static void set(Map<String, Class<? extends SourceConnector>> factories) {
-        SourceConnectorRegistry.sourceConnectorClasses = factories;
+    public static void set(Map<String, Class<? extends SourceConnectorFactory>> factories) {
+        SourceConnectorRegistry.sourceConnectorFactories = factories;
     }
 
-    public static Class<? extends SourceConnector> get(String name) {
-        return sourceConnectorClasses.get(name);
+    public static Class<? extends SourceConnectorFactory> get(String name) {
+        return sourceConnectorFactories.get(name);
     }
 
-    public static Map<String, Class<? extends SourceConnector>> getSourceConnectorClasses() {
-        return sourceConnectorClasses;
+    public static Map<String, Class<? extends SourceConnectorFactory>> getSourceConnectorFactories() {
+        return sourceConnectorFactories;
     }
 }

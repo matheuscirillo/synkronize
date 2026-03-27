@@ -1,6 +1,8 @@
 package io.synkronize.scheduler.connector;
 
 import io.synkronize.connector.source.spi.SourceConnector;
+import io.synkronize.connector.source.spi.SourceConnectorFactory;
+import io.synkronize.connector.source.spi.context.task.TaskContext;
 import io.synkronize.extension.connector.runtime.SourceConnectorRegistry;
 import io.synkronize.scheduler.connector.exception.ConnectorClassNotFoundException;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -16,14 +18,15 @@ public class DefaultConnectorResolver implements ConnectorResolver {
     private static final Logger logger = LoggerFactory.getLogger(DefaultConnectorResolver.class);
 
     @Override
-    public SourceConnector resolve(String sourceType) {
-        Class<? extends SourceConnector> sourceConnectorClass = SourceConnectorRegistry.get(sourceType);
-        if (sourceConnectorClass == null)
-            throw new ConnectorClassNotFoundException("Source connector class for type " + sourceType + " not found");
+    public SourceConnector resolve(String sourceType, TaskContext taskContext) {
+        Class<? extends SourceConnectorFactory> factoryClass = SourceConnectorRegistry.get(sourceType);
+        if (factoryClass == null)
+            throw new ConnectorClassNotFoundException("Source connector factory for type " + sourceType + " not found");
 
-        logger.info("Instantiating source connector {}", sourceConnectorClass.getCanonicalName());
-        SourceConnector sourceConnector = instantiate(sourceConnectorClass);
-        logger.info("Source connector {} instantiated", sourceConnectorClass.getCanonicalName());
+        logger.info("Creating source connector via factory {}", factoryClass.getCanonicalName());
+        SourceConnectorFactory factory = instantiateFactory(factoryClass);
+        SourceConnector sourceConnector = factory.create(taskContext);
+        logger.info("Source connector {} created", sourceConnector.getClass().getCanonicalName());
 
         return sourceConnector;
     }
@@ -37,25 +40,25 @@ public class DefaultConnectorResolver implements ConnectorResolver {
         return metadata.getConnector();
     }
 
-    private SourceConnector instantiate(Class<? extends SourceConnector> clazz) {
+    private SourceConnectorFactory instantiateFactory(Class<? extends SourceConnectorFactory> clazz) {
         try {
-            Constructor<? extends SourceConnector> constructor = clazz.getConstructor();
+            Constructor<? extends SourceConnectorFactory> constructor = clazz.getConstructor();
             return constructor.newInstance();
         } catch (NoSuchMethodException e) {
-            String msg = "No default constructor found for {}";
-            logger.error(msg, clazz.getCanonicalName(), e);
+            String msg = "No default constructor found for %s".formatted(clazz.getCanonicalName());
+            logger.error(msg, e);
             throw new RuntimeException(msg, e);
         } catch (InvocationTargetException e) {
-            String msg = "Error while invoking constructor {}";
-            logger.error(msg, clazz.getCanonicalName(), e);
+            String msg = "Error while invoking factory constructor for %s".formatted(clazz.getCanonicalName());
+            logger.error(msg, e);
             throw new RuntimeException(msg, e);
         } catch (InstantiationException e) {
-            String msg = "Error while instantiating {}";
-            logger.error(msg, clazz.getCanonicalName(), e);
+            String msg = "Error while instantiating %s".formatted(clazz.getCanonicalName());
+            logger.error(msg, e);
             throw new RuntimeException(msg, e);
         } catch (IllegalAccessException e) {
-            String msg = "An illegal access exception was thrown while trying to instantiate {}";
-            logger.error(msg, clazz.getCanonicalName(), e);
+            String msg = "Illegal access while trying to instantiate %s".formatted(clazz.getCanonicalName());
+            logger.error(msg, e);
             throw new RuntimeException(msg, e);
         }
     }

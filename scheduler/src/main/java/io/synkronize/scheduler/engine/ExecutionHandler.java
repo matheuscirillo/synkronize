@@ -36,7 +36,7 @@ public class ExecutionHandler implements Runnable {
         this.envId = envId;
         this.taskMetrics = taskMetrics;
 
-        this.connectorType = connector.getClass().getAnnotation(SynkronizeConnector.class).value();
+        this.connectorType = connector.getClass().getAnnotation(SynkronizeConnector.class).type();
         this.defaultDelay = Duration.ofMillis(10);
         this.delay = defaultDelay;
     }

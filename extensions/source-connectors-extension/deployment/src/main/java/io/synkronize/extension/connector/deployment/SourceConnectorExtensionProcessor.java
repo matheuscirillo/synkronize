@@ -6,6 +6,7 @@ import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.synkronize.connector.source.spi.SourceConnector;
+import io.synkronize.connector.source.spi.SourceConnectorFactory;
 import io.synkronize.connector.source.spi.SynkronizeConnector;
 import io.synkronize.extension.connector.runtime.SourceConnectorRegistryRecorder;
 import org.jboss.jandex.ClassInfo;
@@ -43,12 +44,12 @@ public class SourceConnectorExtensionProcessor {
             SourceConnectorImplementationsBuildItem item,
             SourceConnectorRegistryRecorder recorder) throws ClassNotFoundException {
         List<String> impls = item.getImplementationsNames();
-        Map<String, Class<? extends SourceConnector>> implementations = new HashMap<>();
+        Map<String, Class<? extends SourceConnectorFactory>> implementations = new HashMap<>();
         for (String impl : impls) {
-            Class<? extends SourceConnector> implClass = (Class<? extends SourceConnector>) Class.forName(impl, false, Thread.currentThread().getContextClassLoader());
+            Class<?> implClass = Class.forName(impl, false, Thread.currentThread().getContextClassLoader());
             SynkronizeConnector synkronizeConnector = implClass.getAnnotation(SynkronizeConnector.class);
             if (synkronizeConnector != null) {
-                implementations.put(synkronizeConnector.value(), implClass);
+                implementations.put(synkronizeConnector.type(), synkronizeConnector.factoryClass());
             }
         }
 
