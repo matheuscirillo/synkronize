@@ -29,8 +29,12 @@
         <quarkus.platform.version>3.32.3</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.0</surefire-plugin.version>
+        <failsafe-plugin.version>${surefire-plugin.version}</failsafe-plugin.version>
         <aws.java.sdk.version>2.27.21</aws.java.sdk.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
+        <mockito.version>4.11.0</mockito.version>
+        <quarkus-logging-json.version>3.4.1</quarkus-logging-json.version>
+        <jna.version>5.17.0</jna.version>
     </properties>
 
     <dependencyManagement>
@@ -47,6 +51,40 @@
                 </exclusions>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${aws.java.sdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkiverse.loggingjson</groupId>
+                <artifactId>quarkus-logging-json</artifactId>
+                <version>${quarkus-logging-json.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-inline</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.java.dev.jna</groupId>
+                <artifactId>jna</artifactId>
+                <version>${jna.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.java.dev.jna</groupId>
+                <artifactId>jna-platform</artifactId>
+                <version>${jna.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -78,7 +116,6 @@
                                 <goal>build</goal>
                                 <goal>generate-code</goal>
                                 <goal>generate-code-tests</goal>
-                                <goal>native-image-agent</goal>
                             </goals>
                         </execution>
                     </executions>
@@ -109,7 +146,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>${surefire-plugin.version}</version>
+                    <version>${failsafe-plugin.version}</version>
                     <executions>
                         <execution>
                             <goals>
@@ -119,6 +156,7 @@
                         </execution>
                     </executions>
                     <configuration>
+                        <skipITs>${skipITs}</skipITs>
                         <systemPropertyVariables>
                             <native.image.path>${project.build.directory}/${project.build.finalName}-runner
                             </native.image.path>
@@ -127,8 +165,39 @@
                         </systemPropertyVariables>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.5.0</version>
+                    <executions>
+                        <execution>
+                            <id>enforce</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireMavenVersion>
+                                        <version>[3.9.0,)</version>
+                                    </requireMavenVersion>
+                                    <requireJavaVersion>
+                                        <version>[25,)</version>
+                                    </requireJavaVersion>
+                                    <dependencyConvergence/>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+            </plugin>
+        </plugins>
     </build>
 
     <profiles>
@@ -143,6 +212,24 @@
                 <skipITs>false</skipITs>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
             </properties>
+        </profile>
+        <profile>
+            <id>native-image-agent</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>${quarkus.platform.group-id}</groupId>
+                        <artifactId>quarkus-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>native-image-agent</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>release</id>
@@ -162,7 +249,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${surefire-plugin.version}</version>
+                        <version>${failsafe-plugin.version}</version>
                         <executions>
                             <execution>
                                 <goals>
@@ -170,6 +257,7 @@
                                     <goal>verify</goal>
                                 </goals>
                                 <configuration>
+                                    <skipITs>${skipITs}</skipITs>
                                     <systemPropertyVariables>
                                         <native.image.path>
                                             ${project.build.directory}/${project.build.finalName}-runner

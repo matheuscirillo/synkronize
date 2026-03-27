@@ -12,8 +12,11 @@
           <option name="goals">
             <list>
               <option value="clean" />
-              <option value="compile" />
               <option value="quarkus:dev" />
+              <option value="-pl" />
+              <option value="scheduler" />
+              <option value="-am" />
+              <option value="-Ddebug=5005" />
             </list>
           </option>
           <option name="multimoduleDir" />

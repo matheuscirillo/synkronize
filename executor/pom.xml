@@ -13,9 +13,6 @@
     <name>Synkronize - Executor</name>
 
     <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
@@ -23,22 +20,22 @@
         <dependency>
             <groupId>io.synkronize</groupId>
             <artifactId>sink-connector-spi</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.synkronize</groupId>
             <artifactId>stdout-sink-connector</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.synkronize</groupId>
             <artifactId>task-model</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.synkronize</groupId>
             <artifactId>task-model-stage-extension</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- QUARKUS -->
@@ -63,7 +60,6 @@
         <dependency>
             <groupId>io.quarkiverse.loggingjson</groupId>
             <artifactId>quarkus-logging-json</artifactId>
-            <version>3.4.1</version>
         </dependency>
 
         <!-- MISC -->
@@ -93,13 +89,11 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
-            <version>4.11.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>4.11.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -142,34 +136,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>executor</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>${quarkus.platform.group-id}</groupId>
-                        <artifactId>quarkus-maven-plugin</artifactId>
-                        <configuration>
-                            <debug>5006</debug>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.jboss.jandex</groupId>
-                        <artifactId>jandex-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>make-index</id>
-                                <goals>
-                                    <goal>jandex</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
 </project>
