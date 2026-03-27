@@ -5,27 +5,38 @@ The Scheduler is responsible for scheduling task executions on a thread and mana
 As already said, this is nowhere near production-ready.
 
 ### How is the execution done?
-Once a request to start a new task is received, the `DefaultScheduler` (the default implementation of the 
-`Scheduler` interface) orchestrate it's initilization by calling underlying classes that effectively 
-instantiate the corresponding connector, creates an `ExecutionHandler` for that task, saves it's metadata 
-within the `ConnectorRegistry`, and then schedules it execution by using the `TaskExecutor` class.
+Once a request to start a new task is received, the `DefaultScheduler` (the default implementation of the
+`Scheduler` interface) orchestrates its initialization: it materializes a **`TaskContext`** from the task message,
+calls **`ConnectorResolver.resolve(sourceType, taskContext)`**, which loads the **`SourceConnectorFactory`**
+registered for that type (via the Quarkus source-connectors extension), invokes **`factory.create(taskContext)`**
+to obtain a **`SourceConnector`**, attaches an **`ExecutionHandler`** to that instance, stores metadata in
+**`ConnectorRegistry`**, and schedules work through **`TaskExecutor`**.
 
-The `SourceConnector` is an interface defined in the Source Connectors SPI module (`io.synkronize.connector.source.spi.SourceConnector`). The **Scheduler** is able to instantiate and run classes that implement this interface.
+Why a **factory** instead of a method such as `onSchedule` on the connector? Each running task can use a different
+queue, broker, or credential set, so clients must be created **per task**, not once for the whole JVM. Putting
+that construction in a **`SourceConnectorFactory`** keeps **`SourceConnector`** focused on polling and writing
+messages, which makes the connector easier to test with injected mocks. The factory only needs a **no-args
+constructor** for the resolver to instantiate it; the **`TaskContext`** passed into **`create`** carries the
+dynamic configuration.
 
-Every class that wants to be a source connector that can be run by the **Scheduler** must implement the `SourceConnector` interface and be annotated with the `@SynkronizeConnector` annotation and provide a no-args constructor.
+The **`SourceConnector`** and **`SourceConnectorFactory`** interfaces live in the Source Connectors SPI module
+(`io.synkronize.connector.source.spi`). Each connector implementation must:
 
-Simple implementation example (full implementation of an AWS SQS Source Connector can be found under the `source-connectors-bundle` module):
+- Implement **`SourceConnector`**.
+- Declare **`@SynkronizeConnector(type = "…", factoryClass = …)`** on that class (the extension indexes
+  implementations of **`SourceConnector`** and maps **`type`** to the given **`factoryClass`**).
+
+Illustrative pattern (see `source-connectors-bundle` for full SQS, Kafka, and RabbitMQ implementations):
 
 ```java
-@SynkronizeConnector("aws/sqs")
+@SynkronizeConnector(type = "aws/sqs", factoryClass = SqsExampleConnectorFactory.class)
 public class SqsExampleConnector implements SourceConnector {
 
-    private SqsClient sqsClient;
+    private final SqsClient sqsClient;
     private boolean isClosed = false;
 
-    @Override
-    public void onSchedule(TaskContext context) {
-        this.sqsClient = createSqsClient(context);
+    public SqsExampleConnector(SqsClient sqsClient) {
+        this.sqsClient = sqsClient;
     }
 
     @Override
@@ -35,7 +46,6 @@ public class SqsExampleConnector implements SourceConnector {
             ExecutionFile executionFile = context.create();
             executionFile.attributes(createAttributes());
             executionFile.message(m.body());
-
             context.write(executionFile);
         });
     }
@@ -49,6 +59,15 @@ public class SqsExampleConnector implements SourceConnector {
     @Override
     public boolean isClosed() {
         return this.isClosed;
+    }
+}
+
+public class SqsExampleConnectorFactory implements SourceConnectorFactory<SqsExampleConnector> {
+
+    @Override
+    public SqsExampleConnector create(TaskContext context) {
+        SqsClient client = buildClientFrom(context); // region, credentials, optional endpoint, etc.
+        return new SqsExampleConnector(client);
     }
 }
 ```
@@ -108,4 +127,4 @@ To generate the Java classes for the gRPC service, you need to run the following
 ```
 mvn quarkus:generate-code -pl scheduler
 ```
-This will generate the Java classes for the gRPC service in the `target/generated-sources/gprc` directory.
+This will generate the Java classes for the gRPC service in the `target/generated-sources/grpc` directory.

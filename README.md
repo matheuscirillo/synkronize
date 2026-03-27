@@ -56,38 +56,61 @@ I did not make these modules public (maybe someday I will) because they are extr
 
 ### The Source Connector SPI
 
-The Source Connector SPI (specifically the SourceConnector interface) is meant to be implemented by a code that wants to act as a connector that can be scheduled and run by the Scheduler.
+The Source Connector SPI is meant to be implemented by code that acts as a connector the Scheduler can run. Wiring (reading `TaskContext`, opening AWS/Kafka/Rabbit clients) is separated from the connector’s runtime behavior (polling, mapping, committing) so each piece has a single responsibility and the connector is easier to unit test.
 
-The `SourceConnector` interface is extremely simple and is defined as follows:
+There are two core types:
+
+1. **`SourceConnectorFactory<T>`** — builds a fully configured connector instance from the task’s **`TaskContext`** (credentials, hosts, queue/topic names, and so on). The Scheduler invokes **`create(TaskContext)`** once when a task starts.
+2. **`SourceConnector`** — handles repeated executions: **`onTrigger(ExecutionContext)`**, **`onStop()`**, **`isClosed()`**.
+
+The `SourceConnector` interface is defined as follows:
+
 ```java
-package io.synkronize.connector.source.spi;  
-  
-import io.synkronize.connector.source.spi.context.execution.ExecutionContext;  
-import io.synkronize.connector.source.spi.context.task.TaskContext;  
-  
-import java.io.IOException;  
-import java.util.concurrent.TimeoutException;  
-  
-public interface SourceConnector {  
-  
-    void onSchedule(TaskContext context);  
-  
-    void onTrigger(ExecutionContext context);  
-  
-    void onStop() throws IOException, TimeoutException;  
-  
-    boolean isClosed();  
-  
+package io.synkronize.connector.source.spi;
+
+import io.synkronize.connector.source.spi.context.execution.ExecutionContext;
+
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+public interface SourceConnector {
+
+    void onTrigger(ExecutionContext context);
+
+    void onStop() throws IOException, TimeoutException;
+
+    boolean isClosed();
+
 }
 ```
 
-The `onSchedule` method is triggered once (at scheduling time) and is the place to put some initialization logic, since parameters such as connection details and credentials are passed wrapped in the `context` parameter.
+The factory contract:
 
-The `onTrigger` method is triggered on each execution of the task. An `ExecutionContext` is injected and must be used by the implementer to write messages to the buffer. Basically, it provides an adapter between the connector and the buffer.
+```java
+package io.synkronize.connector.source.spi;
 
-The `onStop` method is triggered when there is a request to stop the task. This is the place to clean up resources, for example, by closing connections.
+import io.synkronize.connector.source.spi.context.task.TaskContext;
 
-The `isClosed` method can be called by the engine to determine whether the task is closed or not. Here, the implementer can implement logic to check whether the task has been closed.
+public interface SourceConnectorFactory<T extends SourceConnector> {
+
+    T create(TaskContext taskContext);
+
+}
+```
+
+Implementations are registered with **`@SynkronizeConnector`**, which declares the logical connector **`type`** (for example `aws/sqs`) and the **`factoryClass`** the runtime must instantiate. The Quarkus build step indexes every class that implements `SourceConnector`, reads that annotation, and records **`type → factoryClass`**. At runtime the Scheduler resolves the factory type for the task’s source, constructs the factory with a **no-args constructor**, calls **`create(taskContext)`**, and obtains the `SourceConnector` used by the **`ExecutionHandler`**.
+
+**Why use a factory instead of a single “schedule hook” on the connector?**
+
+- Tasks are **dynamic**: many connectors can run at once, each with different queues, regions, or credentials. A new **`SqsClient`** (or Kafka consumer, Rabbit connection, etc.) is built **per `TaskContext`** inside the factory, not as a global singleton.
+- **Testability**: factories can contain straightforward SDK setup; **`SourceConnector`** can accept fully constructed clients in its constructor so **`onTrigger`** can be tested with mocks without exercising AWS or message brokers.
+- **Clear lifecycle**: “build from config” happens once in **`create`**, “run repeatedly” happens in **`onTrigger`**.
+
+The **`onTrigger`** method runs on each task execution. An **`ExecutionContext`** is created by the Scheduler’s **`ExecutionHandler`**; the connector uses it to create **`ExecutionFile`** instances and write them to the buffer, signal empty receives, or report errors.
+
+The **`onStop`** method runs when the task is stopped and should release resources (close clients, channels, consumers).
+
+The **`isClosed`** method allows the engine to check whether the connector has finished shutting down.
 
 ### Existing Source Connectors:
 
